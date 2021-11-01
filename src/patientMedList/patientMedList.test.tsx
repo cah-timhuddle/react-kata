@@ -1,23 +1,17 @@
 import { render } from '@testing-library/react'
-import axios from 'axios'
-import MockAdapter from 'axios-mock-adapter'
 import { PatientMedList } from '.'
-import { Medication } from './types'
+import * as api from '../api'
+import { Medication } from '../types'
 
 describe('medlist', () => {
-  let mock: MockAdapter
-  let originalLog: (...data: any[]) => void
+  let originalError: (...data: any[]) => void
 
   beforeAll(() => {
-    originalLog = console.log
-    console.log = jest.fn()
+    originalError = console.error
+    console.error = jest.fn()
   })
 
-  afterAll(() => { console.log = originalLog })
-
-  beforeEach(() => { mock = new MockAdapter(axios, { delayResponse: 200 }) })
-
-  afterEach(() => { mock.restore() })
+  afterAll(() => { console.error = originalError })
 
   it('Shows loading message before ajax call is complete', async () => {
     const { findByTestId } = render(<PatientMedList />)
@@ -26,31 +20,17 @@ describe('medlist', () => {
   })
 
   it('Table renders with medications', async () => {
-    mock.onGet().replyOnce<Medication[]>(200, [
-      {
-        id: '44e5a1ac-e0e8-4db7-a82f-9cab17b743e0',
-        name: 'Asprin',
-        directionsForUse: 'Take 1 tablet',
-        condition: 'Headache',
-        prescriber: { name: 'Self', id: '3a37dbe8-d5f1-4784-bfc2-eb17afe74f1b' }
-      },
-      {
-        id: '1111111-e0e8-4db7-a82f-9cab17b743e0',
-        name: 'NAPROXEN',
-        directionsForUse: 'Take 1 tablet',
-        condition: 'Back pain',
-        prescriber: { name: 'Joe Smith', id: 'ddddddddd-d5f1-4784-bfc2-eb17afe74f1b' }
-      }
-    ])
+    const spy = jest.spyOn(api, 'fetchMedications')
 
     const { findAllByTestId, queryByTestId, queryByText } = render(<PatientMedList />)
 
     const rows = await findAllByTestId('med-row')
     expect(queryByTestId('loading')).not.toBeInTheDocument()
 
-    expect(rows.length).toBe(2)
+    const returnedMeds: Medication[] = await spy.mock.results[0].value
+    expect(rows.length).toBe(returnedMeds.length)
 
-    expect(rows[0]).toContainElement(queryByText('Asprin'))
-    expect(rows[1]).toContainElement(queryByText('NAPROXEN'))
+    expect(rows[0]).toContainElement(queryByText(returnedMeds[0].name))
+    expect(rows[1]).toContainElement(queryByText(returnedMeds[1].name))
   })
 })

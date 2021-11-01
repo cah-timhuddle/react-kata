@@ -1,12 +1,14 @@
+export interface Prescriber {
+  id: string
+    name: string
+}
+
 export interface Medication {
   id: string
   name: string
   condition: string
   directionsForUse: string
-  prescriber: {
-    id: string
-    name: string
-  }
+  prescriber: Prescriber
 }
 
 export interface MedListState {

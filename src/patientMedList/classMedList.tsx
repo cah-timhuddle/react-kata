@@ -1,6 +1,6 @@
-import axios from 'axios'
 import { Component, ReactNode } from 'react'
-import { Medication, MedListState } from './types'
+import { fetchMedications } from '../api'
+import { Medication, MedListState } from '../types'
 
 export class ClassMedList extends Component<{}, MedListState> {
   constructor (props: {}) {
@@ -12,8 +12,8 @@ export class ClassMedList extends Component<{}, MedListState> {
   }
 
   componentDidMount () {
-    axios.get<Medication[]>('http://localhost:3001/medications')
-      .then(r => this.setState({ medications: r.data, loading: false }))
+    fetchMedications()
+      .then(meds => this.setState({ medications: meds, loading: false }))
       .catch(e => console.log(e))
   }
 

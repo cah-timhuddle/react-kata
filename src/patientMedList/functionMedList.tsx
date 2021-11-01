@@ -1,13 +1,13 @@
-import axios from 'axios'
 import { ReactElement, useEffect, useState } from 'react'
-import { Medication, MedListState } from './types'
+import { fetchMedications } from '../api'
+import { Medication, MedListState } from '../types'
 
 export function FunctionMedList (): ReactElement {
   const [{ medications, loading }, setState] = useState<MedListState>({ medications: [], loading: true })
 
   useEffect(() => {
-    axios.get<Medication[]>('http://localhost:3001/medications')
-      .then(r => setState({ medications: r.data, loading: false }))
+    fetchMedications()
+      .then(meds => setState({ medications: meds, loading: false }))
       .catch(e => console.log(e))
   }, [])
 
